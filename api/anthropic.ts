@@ -7,7 +7,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Basic origin check — replace with your actual Vercel domain once deployed
-  const allowed = ['https://where-did-my-money-go.vercel.app', 'http://localhost:5173'];
+  const allowed = ['https://wheredidmymoneygo-lemon.vercel.app', 'http://localhost:5173'];
   const origin = req.headers.origin || '';
   if (!allowed.includes(origin)) {
     return res.status(403).json({ error: 'Forbidden' });
