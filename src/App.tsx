@@ -273,7 +273,7 @@ For negative amounts include the minus sign (e.g. "-$150.00").`;
     if(images.length===0&&csvTexts.length===0&&!input.trim()) return setError("Add at least one image, CSV file, or paste some text.");
     setError("");setResults([]);setDuplicates([]);setRemovedDuplicates([]);setDuplicatesResolved(false);setLoading(true);
     try {
-      const res=await fetch('/api/anthropic',{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:8000,system:getSystem(),messages:getMessages()})});
+      const res=await fetch('/api/anthropic',{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-5",max_tokens:8000,system:getSystem(),messages:getMessages()})});
       const data=await res.json();
       if(data.error) throw new Error(data.error.message);
       const raw=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
