@@ -13,6 +13,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
+  // Password check  ← NEW
+  const providedPassword = req.headers['x-app-password'];
+  if (providedPassword !== process.env.APP_PASSWORD) {
+    return res.status(401).json({ error: 'Incorrect password' });
+  }
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
