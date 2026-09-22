@@ -152,6 +152,8 @@ const Checkbox = ({ checked, onChange, label, desc }) => (
 );
 
 export default function App() {
+  const [unlocked, setUnlocked] = useState(!!sessionStorage.getItem("app_password"));
+  const [passwordInput, setPasswordInput] = useState("");
   const [page, setPage] = useState("home");
   const [categories, setCategories] = useState([]);
   const [autoMode, setAutoMode] = useState(null);
@@ -273,9 +275,12 @@ For negative amounts include the minus sign (e.g. "-$150.00").`;
     if(images.length===0&&csvTexts.length===0&&!input.trim()) return setError("Add at least one image, CSV file, or paste some text.");
     setError("");setResults([]);setDuplicates([]);setRemovedDuplicates([]);setDuplicatesResolved(false);setLoading(true);
     try {
-      const res=await fetch('/api/anthropic',{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-5",max_tokens:8000,system:getSystem(),messages:getMessages()})});
+      const res=await fetch('/api/anthropic',{method:"POST",headers:{"Content-Type":"application/json","x-app-password":sessionStorage.getItem("app_password")||""},body:JSON.stringify({model:"claude-sonnet-5",max_tokens:8000,system:getSystem(),messages:getMessages()})});
       const data=await res.json();
-      if(data.error) throw new Error(data.error.message);
+      if(data.error){
+        if(res.status===401){sessionStorage.removeItem("app_password");setUnlocked(false);}
+        throw new Error(data.error.message);
+      }
       const raw=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
       const clean=raw.replace(/```json/gi,"").replace(/```/g,"").trim();
       const parsed=JSON.parse(clean);
@@ -338,6 +343,42 @@ For negative amounts include the minus sign (e.g. "-$150.00").`;
         placeholder="New category..."
         style={{fontFamily:FONT,flex:1,padding:`${sp[2]}px ${sp[3]}px`,borderRadius:R.inner,border:"0.5px solid var(--color-border-secondary)",fontSize:T.xs,background:"var(--color-background-primary)",color:"var(--color-text-primary)"}}/>
       <button onClick={()=>addInlineCat(idx,forChange)} style={{...ghostBtn(true),whiteSpace:"nowrap"}}>Add & select</button>
+    </div>
+  );
+
+  // ══════════════════════════════════════════
+  // PASSWORD GATE
+  // ══════════════════════════════════════════
+  if(!unlocked) return (
+    <div style={{fontFamily:FONT,maxWidth:400,margin:"0 auto",padding:`${sp[24]}px ${sp[6]}px`,textAlign:"center"}}>
+      <div style={{width:64,height:64,borderRadius:16,background:BLUE,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto",marginBottom:sp[6]}}>
+        <CashIcon size={32}/>
+      </div>
+      <h1 style={{fontFamily:FONT,fontSize:T.xl,fontWeight:W.bold,margin:`0 0 ${sp[4]}px`,color:"var(--color-text-primary)"}}>Enter access code</h1>
+      <input
+        type="password"
+        value={passwordInput}
+        onChange={e=>setPasswordInput(e.target.value)}
+        onKeyDown={e=>{
+          if(e.key==="Enter" && passwordInput.trim()){
+            sessionStorage.setItem("app_password", passwordInput.trim());
+            setUnlocked(true);
+          }
+        }}
+        placeholder="Password"
+        style={{fontFamily:FONT,width:"100%",padding:`${sp[3]}px ${sp[4]}px`,borderRadius:R.inner,border:"0.5px solid var(--color-border-secondary)",fontSize:T.base,marginBottom:sp[3],boxSizing:"border-box"}}
+      />
+      <button
+        onClick={()=>{
+          if(passwordInput.trim()){
+            sessionStorage.setItem("app_password", passwordInput.trim());
+            setUnlocked(true);
+          }
+        }}
+        style={{...primaryBtn(),width:"100%",justifyContent:"center"}}
+      >
+        Unlock
+      </button>
     </div>
   );
 
@@ -682,11 +723,11 @@ For negative amounts include the minus sign (e.g. "-$150.00").`;
           </div>
         )}
 
-        {/* Categorized - masonry grid of category cards */}
+        {/* Categorized */}
         {Object.keys(grouped).length>0&&(
           <div>
             <span style={sectionLabel}>Categorized ({done.length})</span>
-           <div style={{display:"flex",flexDirection:"column",gap:sp[3],marginBottom:sp[4]}}>
+            <div style={{display:"flex",flexDirection:"column",gap:sp[3],marginBottom:sp[4]}}>
               {Object.entries(grouped).sort((a,b)=>a[0].localeCompare(b[0])).map(([cat,txns])=>(
                 <div key={cat} style={{...card}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:`${sp[3]}px ${sp[4]}px`,background:"var(--color-background-secondary)"}}>
@@ -728,7 +769,7 @@ For negative amounts include the minus sign (e.g. "-$150.00").`;
                 </div>
               ))}
             </div>
-            {/* Total and export below the masonry grid */}
+            {/* Total and export */}
             <div style={{...card,marginBottom:sp[4]}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:`${sp[4]}px`}}>
                 <p style={{fontFamily:FONT,fontSize:T.base,fontWeight:W.bold,color:"var(--color-text-primary)",margin:0}}>Total</p>
