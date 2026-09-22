@@ -686,7 +686,7 @@ For negative amounts include the minus sign (e.g. "-$150.00").`;
         {Object.keys(grouped).length>0&&(
           <div>
             <span style={sectionLabel}>Categorized ({done.length})</span>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:sp[3],marginBottom:sp[4],alignItems:"start"}}>
+           <div style={{display:"flex",flexDirection:"column",gap:sp[3],marginBottom:sp[4]}}>
               {Object.entries(grouped).sort((a,b)=>a[0].localeCompare(b[0])).map(([cat,txns])=>(
                 <div key={cat} style={{...card}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:`${sp[3]}px ${sp[4]}px`,background:"var(--color-background-secondary)"}}>
